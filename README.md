@@ -1,46 +1,87 @@
-# Getting Started with Create React App
+# Driva Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Setup
 
-## Available Scripts
+```bash
+npm install
+npm start  # http://localhost:3000
+```
 
-In the project directory, you can run:
+## Tailwind CSS
 
-### `npm start`
+Already configured via `tailwind.config.js` and `postcss.config.js`.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## API Proxy Setup (Development)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+To forward API requests from your React frontend (running on port 3000) to your backend server (e.g., running on port 4000), you can use a proxy. This avoids CORS issues and allows you to use relative API paths in your code.
 
-### `npm test`
+**Steps:**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Install the proxy middleware:**
 
-### `npm run build`
+   ```bash
+   npm install http-proxy-middleware --save
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. **Create a proxy setup file:**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+   - Create a file named `setupProxy.js` (or `setupProxy.ts` for TypeScript) in your `src` directory.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+3. **Add the following code to `setupProxy.js`:**
 
-### `npm run eject`
+   ```js
+   const { createProxyMiddleware } = require("http-proxy-middleware");
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+   module.exports = function (app) {
+     app.use(
+       "/api",
+       createProxyMiddleware({
+         target: "http://localhost:4000", // Change this to your backend port
+         changeOrigin: true,
+       })
+     );
+   };
+   ```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. **How it works:**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+   - Any request from your React app to `/api` (e.g., `/api/apply`) will be forwarded to your backend server.
+   - This allows you to use relative URLs in your frontend code (e.g., `fetch('/api/apply')`), and the proxy will handle routing to the backend.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+5. **Note:**
+   - You do not need to run or import this file manually; `react-scripts` will automatically use it during development.
+   - Make sure to restart your development server after adding or changing the proxy setup.
 
-## Learn More
+## Testing
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Unit & Integration
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- React Testing Library: `npm test`
+
+### End-to-End
+
+```bash
+npm install --save-dev cypress
+npx cypress open
+```
+
+Tests located in `cypress/integration/form.spec.ts` cover form navigation, validation, and API submission.
+
+## Architecture
+
+- **React v18 + TypeScript**
+- **React Hook Form** & **Zod** for schema-driven validation
+- **Tailwind CSS** for utility-first styling
+- **Atomic Components**: `PersonalDetailsForm`, `LoanDetailsForm`, `Results`
+- **Fetch API** to POST `/api/apply`
+
+## Submission Guidelines
+
+- Push to GitHub including `node_modules` (lockfile present)
+- Ensure README.md explains setup & design
+- Be ready to discuss DRY, SOLID, YAGNI choices, and testing strategy
+
+## Next Steps
+
+- Add CI (GitHub Actions) to run tests
+- Integrate a component library for more polished UI
